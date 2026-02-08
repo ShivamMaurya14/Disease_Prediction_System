@@ -121,10 +121,7 @@ Our solution combines three predictive models into a unified, user-friendly inte
     pip install -r requirements.txt
     ```
 
-    > **Note**: For Brain Tumor Detection, you must verify/train the model once:
-    ```bash
-    python scripts/train_brain_tumor.py
-    ```
+    > **Note**: For Brain Tumor Detection, open and run `notebooks/Final_Brain_Tumor_Prediction.ipynb` to train the model.
 
 4.  **Run the Application**
     ```bash
@@ -179,6 +176,10 @@ python scripts/verify_models.py
 -   **Shivam Maurya** - *AI & ROBOTICS ENGINEER*
 -   **[Saurav Tiwari]** - *Frontend & UI/UX*
 -   **[Rishabh Panday]** - *Data Scientist/ML Engineer*
+
+## Latest Updates
+-   **New Notebook**: Added [`Final_Brain_Tumor_Prediction.ipynb`](notebooks/Final_Brain_Tumor_Prediction.ipynb) for Brain Tumor model training.
+-   **New Module**: Brain Tumor Detection integrated into the app.
 
 ---
 

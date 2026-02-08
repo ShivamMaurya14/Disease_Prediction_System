@@ -66,7 +66,7 @@ def verify_brain_tumor_model():
         model_path = os.path.join(MODELS_DIR, 'brain_tumor_model.h5')
         
         if not os.path.exists(model_path):
-            print(f"Brain Tumor Model not found at {model_path}. Please run scripts/train_brain_tumor.py")
+            print(f"Brain Tumor Model not found at {model_path}. Please train the model using notebooks/Final_Brain_Tumor_Prediction.ipynb")
             return
 
         model = load_model(model_path)
