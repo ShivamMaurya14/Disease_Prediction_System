@@ -345,7 +345,7 @@ if st.session_state['page'] == "Brain Tumor Detection":
     model_path = 'models/brain_tumor_model.h5'
     if not os.path.exists(model_path):
         st.error("⚠️ Model not found!")
-        st.warning("Please run the training script to generate the model: `python scripts/train_brain_tumor.py`")
+        st.warning("Please train the model using `notebooks/Final_Brain_Tumor_Prediction.ipynb` to generate the model.")
     else:
         uploaded_file = st.file_uploader("Choose an MRI Image", type=["jpg", "jpeg", "png"])
 

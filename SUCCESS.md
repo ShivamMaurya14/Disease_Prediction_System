@@ -11,7 +11,11 @@
 4.  **Model Saving**:
     -   All notebooks (`Brain Tumor`, `Chest X-Ray`, `Diabetes`, `Heart Disease`) now save models to `../models/`.
     -   Missing scaler saving added to Diabetes and Heart Disease notebooks.
-5.  **Documentation**: `README.md` updated with latest structure and instructions.
+5.  **Dataset Organization**:
+    -   Created `datasets/` directory (ignored by git to prevent large file uploads).
+    -   Moved `tumor-dataset` to `datasets/`.
+    -   Updated all notebooks to load data from `../datasets/`.
+6.  **Documentation**: `README.md` updated with latest structure and instructions.
 
 ## Verification
 -   Run `python scripts/verify_models.py` to check model existence.
