@@ -165,9 +165,9 @@ python scripts/verify_models.py
 **Team Name**  
 *Thinking Machine Hackathon 2024*
 
--   **[Your Name]** - *AI & Backend Developer* - [GitHub](https://github.com/yourusername)
--   **[Teammate Name]** - *Frontend & UI/UX*
--   **[Teammate Name]** - *Data Scientist*
+-   **Shivam Maurya** - *AI & ROBOTICS ENGINEER*
+-   **[Saurav Tiwari]** - *Frontend & UI/UX*
+-   **[Rishabh Panday]** - *Data Scientist/ML Engineer*
 
 ---
 
