@@ -77,6 +77,12 @@ Our solution combines three predictive models into a unified, user-friendly inte
 -   **Inputs**: Chest X-Ray Images (JPEG/PNG)
 -   **Output**: Normal vs. Pneumonia Classification logic.
 
+### 🧠 Brain Tumor Detection (MRI)
+*Detects brain tumors from MRI scans and classifies them.*
+-   **Model**: Xception (Transfer Learning)
+-   **Inputs**: Brain MRI Images
+-   **Output**: Glioma, Meningioma, No Tumor, Pituitary classification.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -85,7 +91,7 @@ Our solution combines three predictive models into a unified, user-friendly inte
 | :--- | :--- |
 | **Frontend** | ![Streamlit](https://img.shields.io/badge/-Streamlit-FF4B4B?logo=Streamlit&logoColor=white) |
 | **ML Models** | ![Scikit-Learn](https://img.shields.io/badge/-Scikit_Learn-F7931E?logo=scikit-learn&logoColor=white) ![Pandas](https://img.shields.io/badge/-Pandas-150458?logo=pandas&logoColor=white) ![NumPy](https://img.shields.io/badge/-NumPy-013243?logo=numpy&logoColor=white) |
-| **Deep Learning** | ![TensorFlow](https://img.shields.io/badge/-TensorFlow-FF6F00?logo=tensorflow&logoColor=white) ![Keras](https://img.shields.io/badge/-Keras-D00000?logo=keras&logoColor=white) |
+| **Deep Learning** | ![TensorFlow](https://img.shields.io/badge/-TensorFlow-FF6F00?logo=tensorflow&logoColor=white) ![Keras](https://img.shields.io/badge/-Keras-D00000?logo=keras&logoColor=white) *Transfer Learning (Xception)* |
 | **Environment** | ![Anaconda](https://img.shields.io/badge/-Anaconda-44A833?logo=anaconda&logoColor=white) ![Git](https://img.shields.io/badge/-Git-F05032?logo=git&logoColor=white) |
 
 ---
@@ -113,6 +119,11 @@ Our solution combines three predictive models into a unified, user-friendly inte
 3.  **Install Dependencies**
     ```bash
     pip install -r requirements.txt
+    ```
+
+    > **Note**: For Brain Tumor Detection, you must verify/train the model once:
+    ```bash
+    python scripts/train_brain_tumor.py
     ```
 
 4.  **Run the Application**

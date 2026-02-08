@@ -100,6 +100,14 @@ if 'page' not in st.session_state:
 def set_page(page_name):
     st.session_state['page'] = page_name
 
+# --- Sidebar Navigation (Hidden for Custom Nav) ---
+# We are using custom buttons on Home, but let's keep a sidebar for direct access if needed
+with st.sidebar:
+    selected = st.selectbox("Navigate", ["Home", "Diabetes", "Heart Disease", "Chest X-Ray", "Brain Tumor Detection"])
+    if selected != st.session_state['page']:
+        st.session_state['page'] = selected
+        st.rerun()
+
 # --- Navbar / Header ---
 if st.session_state['page'] != 'Home':
     col1, col2 = st.columns([1, 9])
@@ -158,6 +166,19 @@ if st.session_state['page'] == 'Home':
         """, unsafe_allow_html=True)
         if st.button("Analyze Chest X-Ray"):
             set_page('Chest X-Ray')
+            st.rerun()
+
+    # New Row for Brain Tumor
+    col1_2, col2_2, col3_2 = st.columns(3)
+    with col1_2:
+        st.markdown("""
+        <div style='background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #8E44AD; margin-bottom: 10px;'>
+            <h3 style='color: #8E44AD;'>🧠 Brain Tumor</h3>
+            <p>Detect Brain Tumors from MRI scans using Transfer Learning (Xception).</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Analyze MRI"):
+            set_page('Brain Tumor Detection')
             st.rerun()
         
     st.markdown("---")
@@ -314,6 +335,56 @@ if st.session_state['page'] == "Chest X-Ray":
                     st.markdown(f"<div class='result-box safe'>NORMAL (Confidence: {1-probability:.2%})</div>", unsafe_allow_html=True)
         except Exception as e:
             st.error(f"Error analyzing image: {e}")
+
+# --- Brain Tumor Detection Page ---
+if st.session_state['page'] == "Brain Tumor Detection":
+    st.markdown("<div class='main-header'>Brain Tumor Detection</div>", unsafe_allow_html=True)
+    st.write("Upload an MRI scan to detect brain tumors.")
+
+    # Check if model exists
+    model_path = 'models/brain_tumor_model.h5'
+    if not os.path.exists(model_path):
+        st.error("⚠️ Model not found!")
+        st.warning("Please run the training script to generate the model: `python scripts/train_brain_tumor.py`")
+    else:
+        uploaded_file = st.file_uploader("Choose an MRI Image", type=["jpg", "jpeg", "png"])
+
+        if uploaded_file is not None:
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded MRI", use_column_width=True)
+            
+            if st.button("Analyze MRI"):
+                try:
+                    # Load model
+                    # Suppress TF logs
+                    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+                    model = load_model(model_path)
+                    
+                    # Preprocess
+                    img = image.resize((299, 299))
+                    img_array = np.array(img)
+                    img_array = np.expand_dims(img_array, axis=0)
+                    img_array = img_array / 255.0 # Rescale as per training
+                    
+                    # Predict
+                    prediction = model.predict(img_array)
+                    class_indices = {'glioma': 0, 'meningioma': 1, 'notumor': 2, 'pituitary': 3}
+                    class_names = list(class_indices.keys())
+                    predicted_class = class_names[np.argmax(prediction)]
+                    confidence = np.max(prediction) * 100
+                    
+                    st.success(f"**Prediction:** {predicted_class.capitalize()}")
+                    st.info(f"**Confidence:** {confidence:.2f}%")
+                    
+                    # Interpretation
+                    if predicted_class == 'notumor':
+                        st.balloons()
+                        st.write("🎉 No tumor detected. The MRI looks healthy.")
+                    else:
+                        st.warning(f"⚠️ Potential {predicted_class} tumor detected. Please consult a specialist.")
+                        
+                except Exception as e:
+                    st.error(f"Error during analysis: {e}")
 
 # --- Footer ---
 st.markdown("---")
