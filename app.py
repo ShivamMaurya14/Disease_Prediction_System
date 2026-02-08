@@ -130,54 +130,52 @@ if st.session_state['page'] == 'Home':
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("### Available Modules")
+    st.markdown("### Choose the Disease You Want to Check")
     
     # Cards Layout
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.markdown("""
-        <div style='background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #FF4B4B; margin-bottom: 10px;'>
-            <h3 style='color: #FF4B4B;'>🩸 Diabetes</h3>
-            <p>Predict diabetes risk based on diagnostic measures like Glucose, BMI, and Insulin levels.</p>
+        <div style='background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #FF4B4B; margin-bottom: 10px;'>
+            <h4 style='color: #FF4B4B;'>🩸 Diabetes</h4>
+            <p style='font-size: 0.9rem;'>Predict risk using Glucose, BMI, etc.</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Diagnose Diabetes"):
+        if st.button("Check Diabetes"):
             set_page('Diabetes')
             st.rerun()
         
     with col2:
         st.markdown("""
-        <div style='background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #4B8BBE; margin-bottom: 10px;'>
-            <h3 style='color: #4B8BBE;'>❤️ Heart Disease</h3>
-            <p>Assess heart disease probability using cardiac metrics like Chest Pain, Cholesterol, and ECG.</p>
+        <div style='background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #4B8BBE; margin-bottom: 10px;'>
+            <h4 style='color: #4B8BBE;'>❤️ Heart</h4>
+            <p style='font-size: 0.9rem;'>Assess risk using cardiac metrics.</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Diagnose Heart Disease"):
+        if st.button("Check Heart"):
             set_page('Heart Disease')
             st.rerun()
 
     with col3:
         st.markdown("""
-        <div style='background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #FFD700; margin-bottom: 10px;'>
-            <h3 style='color: #E6C200;'>🩻 Chest X-Ray</h3>
-            <p>Detect Pneumonia from chest X-Ray images using raw pixel analysis and Deep Learning.</p>
+        <div style='background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #FFD700; margin-bottom: 10px;'>
+            <h4 style='color: #E6C200;'>🩻 X-Ray</h4>
+            <p style='font-size: 0.9rem;'>Detect Pneumonia from X-Rays.</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Analyze Chest X-Ray"):
+        if st.button("Check X-Ray"):
             set_page('Chest X-Ray')
             st.rerun()
 
-    # New Row for Brain Tumor
-    col1_2, col2_2, col3_2 = st.columns(3)
-    with col1_2:
+    with col4:
         st.markdown("""
-        <div style='background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #8E44AD; margin-bottom: 10px;'>
-            <h3 style='color: #8E44AD;'>🧠 Brain Tumor</h3>
-            <p>Detect Brain Tumors from MRI scans using Transfer Learning (Xception).</p>
+        <div style='background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #8E44AD; margin-bottom: 10px;'>
+            <h4 style='color: #8E44AD;'>🧠 Tumor</h4>
+            <p style='font-size: 0.9rem;'>Detect Tumors from MRI scans.</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Analyze MRI"):
+        if st.button("Check MRI"):
             set_page('Brain Tumor Detection')
             st.rerun()
         
