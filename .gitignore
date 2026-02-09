@@ -25,3 +25,6 @@ venv.bak/
 # Logs
 *.log
 datasets/
+
+# Models (too large for GitHub - train/download locally)
+models/
