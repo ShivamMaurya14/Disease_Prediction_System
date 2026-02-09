@@ -121,16 +121,29 @@ Our solution combines three predictive models into a unified, user-friendly inte
     pip install -r requirements.txt
     ```
 
-    > **Note**: For Brain Tumor Detection, open and run `notebooks/Final_Brain_Tumor_Prediction.ipynb` to train the model.
+4.  **Train/Generate Model Files** ⚠️ **IMPORTANT**
+    
+    > **The `models/` directory is not included in the repository** due to GitHub's 100MB file size limit. You must generate the model files locally by running the training notebooks:
+    
+    ```bash
+    # For Brain Tumor Detection (creates brain_tumor_model.h5 - ~242MB)
+    # Open and run: notebooks/Final_Brain_Tumor_Prediction.ipynb
+    
+    # For other models, run their respective training notebooks:
+    # - notebooks/Diabetes-Prediction-14414d.ipynb
+    # - notebooks/Heart-Disease-Prediction.ipynb (if exists)
+    ```
+    
+    All model files will be automatically saved to the `models/` directory after training.
 
-4.  **Run the Application**
+5.  **Run the Application**
     ```bash
     streamlit run app.py
     # OR
     bash run_app.sh
     ```
 
-5.  **Access the App**
+6.  **Access the App**
     Open your browser and navigate to `http://localhost:8501`.
 
 ---
