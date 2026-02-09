@@ -190,10 +190,6 @@ python scripts/verify_models.py
 -   **[Saurav Tiwari]** - *Frontend & UI/UX*
 -   **[Rishabh Panday]** - *Data Scientist/ML Engineer*
 
-## Latest Updates
--   **New Notebook**: Added [`Final_Brain_Tumor_Prediction.ipynb`](notebooks/Final_Brain_Tumor_Prediction.ipynb) for Brain Tumor model training.
--   **New Module**: Brain Tumor Detection integrated into the app.
-
 ---
 
 Made with ❤️ and ☕ for healthcare innovation.
