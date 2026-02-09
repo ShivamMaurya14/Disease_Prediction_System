@@ -26,5 +26,6 @@ venv.bak/
 *.log
 datasets/
 
-# Models (too large for GitHub - train/download locally)
-models/
+# Models (Enabled for Streamlit Deployment)
+# Note: brain_tumor_model.keras is > 100MB and may require Git LFS
+# models/
