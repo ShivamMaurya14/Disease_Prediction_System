@@ -775,7 +775,7 @@ if st.session_state['page'] == "Brain Tumor Detection":
                             
                             # Predict using safe wrapper
                             prediction = safe_model_predict(tumor_model, img_array, verbose=0)
-                            class_indices = {'glioma': 0, 'meningioma': 1, 'notumor': 2, 'pituitary': 3}
+                            class_indices = {'Tumor glioma': 0, 'Tumor meningioma': 1, 'No_tumor': 2, 'Tumor pituitary': 3}
                             class_names = list(class_indices.keys())
                             predicted_class = class_names[np.argmax(prediction)]
                             confidence = np.max(prediction) * 100
@@ -799,7 +799,7 @@ if st.session_state['page'] == "Brain Tumor Detection":
         st.info(f"**Confidence:** {res['conf']:.2f}%")
         
         # Interpretation
-        if res['class'] == 'notumor':
+        if res['class'] == 'No_tumor':
             st.balloons()
             st.write("🎉 No tumor detected. The MRI looks healthy.")
         else:

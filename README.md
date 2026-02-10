@@ -182,12 +182,12 @@ python scripts/verify_models.py
 
 ## 👥 Contributors
 
+**Team - MEDSYNAPSE**  
+*Thinking Machine Hackathon 2026*
 
-**Team Name**  
-*Thinking Machine Hackathon 2024*
 
--   **Shivam Maurya** - *AI & ROBOTICS ENGINEER*
--   **[Saurav Tiwari]** - *Frontend & UI/UX*
+-   **Shivam Maurya** - *AI & Robotics Engineer*
+-   **[Saurav Tiwari]** - *Frontend & Streamlit Developer*
 -   **[Rishabh Panday]** - *Data Scientist/ML Engineer*
 
 ---
