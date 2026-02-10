@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import os
+import sys
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from PIL import Image
@@ -14,20 +15,28 @@ import gdown
 import tensorflow as tf
 try:
     import keras
-    classes_to_patch = [tf.keras.layers.Flatten, tf.keras.layers.GlobalAveragePooling2D]
-    if hasattr(keras, 'layers'):
-        if hasattr(keras.layers, 'Flatten'): classes_to_patch.append(keras.layers.Flatten)
-        if hasattr(keras.layers, 'GlobalAveragePooling2D'): classes_to_patch.append(keras.layers.GlobalAveragePooling2D)
     
-    def apply_patch(cls):
-        original_call = cls.call
-        def patched_call(self, inputs, *args, **kwargs):
-            if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
-                inputs = inputs[0]
-            return original_call(self, inputs, *args, **kwargs)
-        cls.call = patched_call
+    def robust_patched_call(self, inputs, *args, **kwargs):
+        # Unwrap single-item lists/tuples
+        if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
+            inputs = inputs[0]
+        # Call the original method
+        return self._original_call(inputs, *args, **kwargs)
 
-    for cls in set(classes_to_patch):
+    def apply_patch(cls):
+        if not hasattr(cls, '_original_call'):
+            cls._original_call = cls.call
+            cls.call = robust_patched_call
+
+    # Target layers known to have this issue in Keras 3 + Xception/MobileNet
+    to_patch = [tf.keras.layers.Flatten, tf.keras.layers.GlobalAveragePooling2D]
+    try:
+        if 'keras' in globals() or 'keras' in sys.modules:
+            import keras
+            to_patch.extend([keras.layers.Flatten, keras.layers.GlobalAveragePooling2D])
+    except: pass
+
+    for cls in set(to_patch):
         apply_patch(cls)
 except Exception as patch_err:
     pass
@@ -116,10 +125,12 @@ def load_xray_model():
     errors = []
     xray_path = 'models/xrays_pneumonia.keras'
     
+    custom_objects = {'Flatten': tf.keras.layers.Flatten}
+    
     try:
         if os.path.exists(xray_path):
-            # Use global patch for Flatten
-            xray_model = tf.keras.models.load_model(xray_path, compile=False)
+            # Use custom_objects for a more reliable patch during loading
+            xray_model = tf.keras.models.load_model(xray_path, compile=False, custom_objects=custom_objects)
             return xray_model, None
         else:
             errors.append(f"Model file not found at {xray_path}")
@@ -127,7 +138,7 @@ def load_xray_model():
         errors.append(f"Load error: {str(e)}")
         try:
             # Try with safe_mode fallback
-            xray_model = tf.keras.models.load_model(xray_path, compile=False, safe_mode=False)
+            xray_model = tf.keras.models.load_model(xray_path, compile=False, safe_mode=False, custom_objects=custom_objects)
             return xray_model, None
         except Exception as e2:
             errors.append(f"SafeMode fallback error: {str(e2)}")
@@ -167,15 +178,18 @@ def load_brain_tumor_model():
             if not success:
                 errors.append(f"Download error: {err}")
     
+    # Prepare custom objects to force the patched Flatten layer during deserialization
+    custom_objects = {'Flatten': tf.keras.layers.Flatten}
+    
     try:
         if os.path.exists(keras_path):
             try:
-                # Primary attempt: Standard load
-                tumor_model = tf.keras.models.load_model(keras_path, compile=False)
+                # Primary attempt: Standard load with custom_objects
+                tumor_model = tf.keras.models.load_model(keras_path, compile=False, custom_objects=custom_objects)
                 return tumor_model, None
             except Exception as e_inner:
-                # Secondary attempt: Loading with safe_mode=False (for TF 2.16+)
-                tumor_model = tf.keras.models.load_model(keras_path, compile=False, safe_mode=False)
+                # Secondary attempt: Loading with safe_mode=False
+                tumor_model = tf.keras.models.load_model(keras_path, compile=False, safe_mode=False, custom_objects=custom_objects)
                 return tumor_model, None
     except Exception as e:
         errors.append(f".keras: {str(e)}")
