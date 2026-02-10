@@ -1,7 +1,9 @@
 #!/bin/bash
 # Quick setup script for brain tumor model
 
-echo "================================"
+e
+    echo "✓ Model downloaded successfully"
+    echo ""cho "================================"
 echo "Brain Tumor Model Setup"
 echo "================================"
 echo ""
@@ -18,8 +20,6 @@ python -m gdown "https://drive.google.com/uc?id=12oBWm5zYq7az62TPq7w68iFz5IOTygr
 
 # Check if download was successful
 if [ -f "models/brain_tumor_model.keras" ]; then
-    echo "✓ Model downloaded successfully"
-    echo ""
     echo "📊 File information:"
     ls -lh models/brain_tumor_model.keras
     echo ""
