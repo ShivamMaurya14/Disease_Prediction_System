@@ -17,7 +17,11 @@ import tensorflow as tf
 class FixedFlatten(tf.keras.layers.Flatten):
     """Custom Flatten layer that handles the Keras 3 list-wrapping bug."""
     def call(self, inputs, *args, **kwargs):
-        if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
+        # Handle Keras 3 list wrapping
+        if isinstance(inputs, (list, tuple)) and len(inputs) > 0:
+            if not hasattr(inputs, 'shape'):
+                inputs = inputs[0]
+        while isinstance(inputs, (list, tuple)) and len(inputs) == 1:
             inputs = inputs[0]
         return super().call(inputs, *args, **kwargs)
 
@@ -28,7 +32,11 @@ class FixedFlatten(tf.keras.layers.Flatten):
 class FixedPooling(tf.keras.layers.GlobalAveragePooling2D):
     """Custom Pooling layer that handles the Keras 3 list-wrapping bug."""
     def call(self, inputs, *args, **kwargs):
-        if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
+        # Handle Keras 3 list wrapping
+        if isinstance(inputs, (list, tuple)) and len(inputs) > 0:
+            if not hasattr(inputs, 'shape'):
+                inputs = inputs[0]
+        while isinstance(inputs, (list, tuple)) and len(inputs) == 1:
             inputs = inputs[0]
         return super().call(inputs, *args, **kwargs)
 
@@ -39,11 +47,23 @@ class FixedPooling(tf.keras.layers.GlobalAveragePooling2D):
 def apply_keras3_compatibility_patches():
     """Apply comprehensive patches for Keras 3 compatibility issues with Flatten, GlobalAveragePooling2D, etc."""
     try:
-        # Patch the classes themselves as a backup
+        def unwrap_tensor(x):
+            """Recursively unwrap a tensor from a single-item list or tuple."""
+            while isinstance(x, (list, tuple)) and len(x) == 1:
+                x = x[0]
+            if isinstance(x, (list, tuple)) and len(x) > 0 and not hasattr(x, 'shape'):
+                x = x[0]
+            return x
+
+        # List of layers that often suffer from the list-wrapping bug in Keras 3
         layers_to_patch = [
             tf.keras.layers.Flatten,
             tf.keras.layers.GlobalAveragePooling2D,
             tf.keras.layers.GlobalMaxPooling2D,
+            tf.keras.layers.Dense,
+            tf.keras.layers.Dropout,
+            tf.keras.layers.Rescaling,
+            tf.keras.layers.BatchNormalization
         ]
         
         for layer_class in layers_to_patch:
@@ -52,30 +72,32 @@ def apply_keras3_compatibility_patches():
                 
                 def make_patched_call(orig_call):
                     def patched_call(self, inputs, *args, **kwargs):
-                        # 1. Handle inputs if provided as the first positional argument
-                        if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
-                            inputs = inputs[0]
+                        # Aggressively unwrap inputs
+                        inputs = unwrap_tensor(inputs)
                         
-                        # 2. Handle case where inputs is None but the data is in args[0]
-                        # OR where both are passed and args[0] is still a wrapped list
-                        if args and len(args) > 0:
-                            wrapped_val = args[0]
-                            if isinstance(wrapped_val, (list, tuple)) and len(wrapped_val) == 1:
-                                # Create a new args tuple with the unwrapped value
-                                new_args = list(args)
-                                new_args[0] = wrapped_val[0]
-                                args = tuple(new_args)
-                                # If inputs was None, also update it to match args[0]
-                                if inputs is None:
-                                    inputs = args[0]
+                        # Aggressively unwrap everything in args
+                        if args:
+                            new_args = [unwrap_tensor(arg) for arg in args]
+                            args = tuple(new_args)
                         
+                        # If inputs is still None and we have something in args, use it
+                        if (inputs is None or (isinstance(inputs, (list, tuple)) and len(inputs) == 0)) and len(args) > 0:
+                            args_list = list(args)
+                            inputs = args_list.pop(0)
+                            args = tuple(args_list)
+                            
+                        # Final check for list-wrapped input
+                        if inputs is not None and not hasattr(inputs, 'shape'):
+                            if isinstance(inputs, (list, tuple)) and len(inputs) > 0:
+                                inputs = inputs[0]
+                                
                         return orig_call(self, inputs, *args, **kwargs)
                     return patched_call
                 
                 layer_class.call = make_patched_call(original_call)
                 layer_class._original_call_patched = True
             
-    except Exception as patch_err:
+    except Exception:
         pass
 
 # Apply patches immediately
@@ -157,6 +179,24 @@ def load_heart_model():
     heart_scaler = pickle.load(open('models/heart_scaler.pkl', 'rb'))
     return heart_model, heart_scaler
 
+def rebuild_xray_model(weights_path):
+    """Rebuild X-Ray model from architecture and load weights as a fallback"""
+    import tensorflow as tf
+    try:
+        apply_keras3_compatibility_patches()
+        base_model = tf.keras.applications.Xception(weights=None, include_top=False, input_shape=(224, 224, 3))
+        x = base_model.output
+        x = FixedPooling()(x)
+        x = tf.keras.layers.Dropout(0.5)(x)
+        x = tf.keras.layers.Dense(128, activation='relu')(x)
+        x = tf.keras.layers.Dropout(0.5)(x)
+        predictions = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+        model = tf.keras.Model(inputs=base_model.input, outputs=predictions)
+        model.load_weights(weights_path)
+        return model, None
+    except Exception as e:
+        return None, str(e)
+
 @st.cache_resource
 def load_xray_model():
     """Load X-Ray model with error reporting"""
@@ -173,18 +213,26 @@ def load_xray_model():
     try:
         if os.path.exists(xray_path):
             # Use custom_objects for a more reliable patch during loading
-            xray_model = tf.keras.models.load_model(xray_path, compile=False, custom_objects=custom_objects)
-            return xray_model, None
+            try:
+                xray_model = tf.keras.models.load_model(xray_path, compile=False, custom_objects=custom_objects)
+                return xray_model, None
+            except Exception as e_inner:
+                try:
+                    # Try with safe_mode fallback
+                    xray_model = tf.keras.models.load_model(xray_path, compile=False, safe_mode=False, custom_objects=custom_objects)
+                    return xray_model, None
+                except Exception as e_inner2:
+                    errors.append(f"Standard Load error: {str(e_inner2)}")
+                    
+                # Rebuild fallback
+                xray_model, rebuild_err = rebuild_xray_model(xray_path)
+                if xray_model:
+                    return xray_model, None
+                errors.append(f"Rebuild error: {rebuild_err}")
         else:
             errors.append(f"Model file not found at {xray_path}")
     except Exception as e:
-        errors.append(f"Load error: {str(e)}")
-        try:
-            # Try with safe_mode fallback
-            xray_model = tf.keras.models.load_model(xray_path, compile=False, safe_mode=False, custom_objects=custom_objects)
-            return xray_model, None
-        except Exception as e2:
-            errors.append(f"SafeMode fallback error: {str(e2)}")
+        errors.append(f"Outer Load error: {str(e)}")
             
     return None, errors
 
@@ -200,6 +248,29 @@ def download_model_from_drive(file_id, output_path):
         return True, None
     except Exception as e:
         return False, str(e)
+
+def rebuild_brain_tumor_model(weights_path):
+    """Rebuild model from architecture and load weights as a fallback for Keras 3 issues"""
+    import tensorflow as tf
+    try:
+        # Re-apply patches just in case
+        apply_keras3_compatibility_patches()
+        
+        # Build according to notebook architecture
+        base_model = tf.keras.applications.Xception(weights=None, include_top=False, input_shape=(299, 299, 3))
+        model = tf.keras.Sequential([
+            base_model,
+            FixedFlatten(),
+            tf.keras.layers.Dense(256, activation='relu'),
+            tf.keras.layers.Dropout(0.5),
+            tf.keras.layers.Dense(4, activation='softmax')
+        ])
+        
+        # Load weights from the saved model
+        model.load_weights(weights_path)
+        return model, None
+    except Exception as e:
+        return None, str(e)
 
 @st.cache_resource
 def load_brain_tumor_model():
@@ -228,7 +299,14 @@ def load_brain_tumor_model():
                     tumor_model = tf.keras.models.load_model(keras_path, compile=False, safe_mode=False, custom_objects=custom_objects)
                     return tumor_model, None
                 except Exception as e_inner2:
-                    errors.append(f".keras: {str(e_inner2)}")
+                    errors.append(f".keras (standard load): {str(e_inner2)}")
+                    
+                # Tertiary attempt: Rebuild architecture and load weights
+                tumor_model, rebuild_err = rebuild_brain_tumor_model(keras_path)
+                if tumor_model:
+                    return tumor_model, None
+                errors.append(f".keras (rebuild): {rebuild_err}")
+                
     except Exception as e:
         errors.append(f".keras outer: {str(e)}")
     
