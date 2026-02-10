@@ -52,17 +52,22 @@ def apply_keras3_compatibility_patches():
                 
                 def make_patched_call(orig_call):
                     def patched_call(self, inputs, *args, **kwargs):
-                        # Unwrap single-item lists/tuples
+                        # 1. Handle inputs if provided as the first positional argument
                         if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
                             inputs = inputs[0]
                         
-                        # Handle case where inputs is None but args has the value
-                        if inputs is None and args and len(args) > 0:
-                            wrapped_inputs = args[0]
-                            if isinstance(wrapped_inputs, (list, tuple)) and len(wrapped_inputs) == 1:
+                        # 2. Handle case where inputs is None but the data is in args[0]
+                        # OR where both are passed and args[0] is still a wrapped list
+                        if args and len(args) > 0:
+                            wrapped_val = args[0]
+                            if isinstance(wrapped_val, (list, tuple)) and len(wrapped_val) == 1:
+                                # Create a new args tuple with the unwrapped value
                                 new_args = list(args)
-                                new_args[0] = wrapped_inputs[0]
+                                new_args[0] = wrapped_val[0]
                                 args = tuple(new_args)
+                                # If inputs was None, also update it to match args[0]
+                                if inputs is None:
+                                    inputs = args[0]
                         
                         return orig_call(self, inputs, *args, **kwargs)
                     return patched_call
