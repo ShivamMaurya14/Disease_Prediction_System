@@ -375,7 +375,7 @@ def set_page(page_name):
 # We are using custom buttons on Home, but let's keep a sidebar for direct access if needed
 with st.sidebar:
     st.markdown("---")
-    page_options = ["Home", "Diabetes", "Heart Disease", "Chest X-Ray", "Brain Tumor Detection"]
+    page_options = ["Home", "Diabetes Detection", "Heart Disease Detection", "Pneumonia X-Ray Detection", "Brain Tumor Detection"]
     current_index = page_options.index(st.session_state['page']) if st.session_state['page'] in page_options else 0
     selected = st.selectbox("Navigate", page_options, index=current_index)
     
@@ -433,7 +433,7 @@ if st.session_state['page'] == 'Home':
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("### Choose the Disease You Want to Check")
+    st.markdown("### Choose the Disease to Check")
     
     # Cards Layout
     col1, col2, col3, col4 = st.columns(4)
@@ -441,40 +441,40 @@ if st.session_state['page'] == 'Home':
     with col1:
         st.markdown("""
         <div style='background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #FF4B4B; margin-bottom: 10px;'>
-            <h4 style='color: #FF4B4B;'>🩸 Diabetes</h4>
+            <h4 style='color: #FF4B4B;'>🩸 Diabetes Detection</h4>
             <p style='font-size: 0.9rem;'>Predict risk using Glucose, BMI, etc.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Check Diabetes", key="btn_diabetes", width="stretch"):
-            st.session_state['page'] = 'Diabetes'
+            st.session_state['page'] = 'Diabetes Detection'
             st.rerun()
         
     with col2:
         st.markdown("""
         <div style='background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #4B8BBE; margin-bottom: 10px;'>
-            <h4 style='color: #4B8BBE;'>❤️ Heart</h4>
+            <h4 style='color: #4B8BBE;'>❤️ Heart Disease Detection</h4>
             <p style='font-size: 0.9rem;'>Assess risk using cardiac metrics.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Check Heart", key="btn_heart", width="stretch"):
-            st.session_state['page'] = 'Heart Disease'
+            st.session_state['page'] = 'Heart Disease Detection'
             st.rerun()
 
     with col3:
         st.markdown("""
         <div style='background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #FFD700; margin-bottom: 10px;'>
-            <h4 style='color: #E6C200;'>🩻 X-Ray</h4>
+            <h4 style='color: #E6C200;'>🩻 Pneumonia Detection X-Ray</h4>
             <p style='font-size: 0.9rem;'>Detect Pneumonia from X-Rays.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Check X-Ray", key="btn_xray", width="stretch"):
-            st.session_state['page'] = 'Chest X-Ray'
+            st.session_state['page'] = 'Pneumonia X-Ray Detection'
             st.rerun()
 
     with col4:
         st.markdown("""
         <div style='background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #8E44AD; margin-bottom: 10px;'>
-            <h4 style='color: #8E44AD;'>🧠 Tumor</h4>
+            <h4 style='color: #8E44AD;'>🧠 Brain Tumor Detection</h4>
             <p style='font-size: 0.9rem;'>Detect Tumors from MRI scans.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -483,9 +483,15 @@ if st.session_state['page'] == 'Home':
             st.rerun()
         
     st.markdown("---")
+    st.markdown("""
+    <div style='text-align: center; padding: 1rem; margin-top: 2rem;'>
+        <p style='color: #777; font-size: 1rem;'>Developed with ❤️ by</p>
+        <h3 style='color: #306998; font-weight: bold; letter-spacing: 1px;'>TEAM MEDSYNAPSE</h3>
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- Diabetes Page ---
-if st.session_state['page'] == "Diabetes":
+if st.session_state['page'] == "Diabetes Detection":
     st.markdown("<div class='main-header'>Diabetes Prediction</div>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
@@ -546,7 +552,7 @@ if st.session_state['page'] == "Diabetes":
             st.balloons()
 
 # --- Heart Disease Page ---
-if st.session_state['page'] == "Heart Disease":
+if st.session_state['page'] == "Heart Disease Detection":
     st.markdown("<div class='main-header'>Heart Disease Prediction</div>", unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
@@ -617,8 +623,8 @@ if st.session_state['page'] == "Heart Disease":
             st.balloons()
 
 # --- Chest X-Ray Page ---
-if st.session_state['page'] == "Chest X-Ray":
-    st.markdown("<div class='main-header'>Chest X-Ray Pneumonia Detection</div>", unsafe_allow_html=True)
+if st.session_state['page'] == "Pneumonia X-Ray Detection":
+    st.markdown("<div class='main-header'>Pneumonia X-Ray Detection</div>", unsafe_allow_html=True)
     
     st.write("Upload a chest X-Ray image to detect if it shows signs of Pneumonia.")
     
