@@ -14,15 +14,36 @@ import gdown
 # Global Fix: Comprehensive Keras 3 compatibility patch for Flatten and pooling layers
 import tensorflow as tf
 
+class FixedFlatten(tf.keras.layers.Flatten):
+    """Custom Flatten layer that handles the Keras 3 list-wrapping bug."""
+    def call(self, inputs, *args, **kwargs):
+        if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
+            inputs = inputs[0]
+        return super().call(inputs, *args, **kwargs)
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+class FixedPooling(tf.keras.layers.GlobalAveragePooling2D):
+    """Custom Pooling layer that handles the Keras 3 list-wrapping bug."""
+    def call(self, inputs, *args, **kwargs):
+        if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
+            inputs = inputs[0]
+        return super().call(inputs, *args, **kwargs)
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 def apply_keras3_compatibility_patches():
     """Apply comprehensive patches for Keras 3 compatibility issues with Flatten, GlobalAveragePooling2D, etc."""
     try:
-        # Get all layer classes to patch
+        # Patch the classes themselves as a backup
         layers_to_patch = [
             tf.keras.layers.Flatten,
             tf.keras.layers.GlobalAveragePooling2D,
             tf.keras.layers.GlobalMaxPooling2D,
-            tf.keras.layers.Reshape,
         ]
         
         for layer_class in layers_to_patch:
@@ -31,46 +52,28 @@ def apply_keras3_compatibility_patches():
                 
                 def make_patched_call(orig_call):
                     def patched_call(self, inputs, *args, **kwargs):
-                        # Unwrap single-item lists/tuples that come from Keras 3 functional API
-                        if isinstance(inputs, (list, tuple)):
-                            if len(inputs) == 1:
-                                inputs = inputs[0]
-                            elif len(inputs) > 1:
-                                # For layers expecting multiple inputs, keep as list
-                                pass
+                        # Unwrap single-item lists/tuples
+                        if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
+                            inputs = inputs[0]
                         
-                        # Handle edge case: if inputs is a Keras tensor wrapped in a list
-                        # This can happen with certain model architectures
-                        if isinstance(inputs, list) and len(inputs) == 1:
-                            if hasattr(inputs[0], 'shape'):  # It's a tensor
-                                inputs = inputs[0]
+                        # Handle case where inputs is None but args has the value
+                        if inputs is None and args and len(args) > 0:
+                            wrapped_inputs = args[0]
+                            if isinstance(wrapped_inputs, (list, tuple)) and len(wrapped_inputs) == 1:
+                                new_args = list(args)
+                                new_args[0] = wrapped_inputs[0]
+                                args = tuple(new_args)
                         
                         return orig_call(self, inputs, *args, **kwargs)
                     return patched_call
                 
                 layer_class.call = make_patched_call(original_call)
                 layer_class._original_call_patched = True
-        
-        # Also try to patch keras module if available
-        try:
-            import keras
-            keras_layers = [
-                keras.layers.Flatten,
-                keras.layers.GlobalAveragePooling2D,
-                keras.layers.GlobalMaxPooling2D,
-            ]
-            for layer_class in keras_layers:
-                if layer_class not in layers_to_patch and not hasattr(layer_class, '_original_call_patched'):
-                    original_call = layer_class.call
-                    layer_class.call = make_patched_call(original_call)
-                    layer_class._original_call_patched = True
-        except:
-            pass
             
     except Exception as patch_err:
-        print(f"Warning: Keras 3 patch application encountered an issue: {patch_err}")
+        pass
 
-# Apply patches immediately on module load
+# Apply patches immediately
 apply_keras3_compatibility_patches()
 
 # Set Page Config
@@ -158,8 +161,8 @@ def load_xray_model():
     xray_path = 'models/xrays_pneumonia.keras'
     
     custom_objects = {
-        'Flatten': tf.keras.layers.Flatten,
-        'GlobalAveragePooling2D': tf.keras.layers.GlobalAveragePooling2D,
+        'Flatten': FixedFlatten,
+        'GlobalAveragePooling2D': FixedPooling,
     }
     
     try:
@@ -202,10 +205,10 @@ def load_brain_tumor_model():
     savedmodel_path = 'models/brain_tumor_model'
     h5_path = 'models/brain_tumor_model.h5'
     
-    # Prepare custom objects for model loading
+    # Prepare custom objects for model loading - forcing our fixed layers
     custom_objects = {
-        'Flatten': tf.keras.layers.Flatten,
-        'GlobalAveragePooling2D': tf.keras.layers.GlobalAveragePooling2D,
+        'Flatten': FixedFlatten,
+        'GlobalAveragePooling2D': FixedPooling,
     }
     
     try:
