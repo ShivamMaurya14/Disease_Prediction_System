@@ -19,6 +19,10 @@ Experience a full walkthrough of the **MedSynapse Disease Prediction System** in
 
 > *The video covers MRI analysis, X-Ray detection, and tabular data predictions.*
 
+### 📺 YouTube Reference
+For an alternative viewing experience, watch the demonstration on YouTube:
+[![MedSynapse YouTube Demo](https://img.youtube.com/vi/f0nAUJNEYs0/0.jpg)](https://youtu.be/f0nAUJNEYs0)
+
 ---
 
 ## 📑 Table of Contents
