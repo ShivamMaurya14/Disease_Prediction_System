@@ -95,55 +95,31 @@ Our solution combines three predictive models into a unified, user-friendly inte
 
 ---
 
-## 💻 Installation & Setup
+## 🌐 Live Access
 
-### Prerequisites
--   Python 3.8 or higher
--   Git installed
+The **MedSynapse Disease Prediction System** is deployed and ready for immediate use. You can access the fully functional application without any local setup via the link below:
 
-### Step-by-Step Guide
+### [👉 Launch Live Application](https://dps-medisynapse.streamlit.app/#team-medsynapse)
 
-1.  **Clone the Repository**
-    ```bash
-    git clone https://github.com/your-username/disease-prediction-system.git
-    cd disease-prediction-system
-    ```
+> **Note**: The live version handles all model loading and processing in the cloud, provided by Streamlit Cloud.
 
-2.  **Create a Virtual Environment (Optional but Recommended)**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    ```
+---
 
-3.  **Install Dependencies**
-    ```bash
-    pip install -r requirements.txt
-    ```
+## 💻 Local Developer Setup (Optional)
 
-4.  **Train/Generate Model Files** ⚠️ **IMPORTANT**
-    
-    > **The `models/` directory is not included in the repository** due to GitHub's 100MB file size limit. You must generate the model files locally by running the training notebooks:
-    
-    ```bash
-    # For Brain Tumor Detection (creates brain_tumor_model.h5 - ~242MB)
-    # Open and run: notebooks/Final_Brain_Tumor_Prediction.ipynb
-    
-    # For other models, run their respective training notebooks:
-    # - notebooks/Diabetes-Prediction-14414d.ipynb
-    # - notebooks/Heart-Disease-Prediction.ipynb (if exists)
-    ```
-    
-    All model files will be automatically saved to the `models/` directory after training.
+If you wish to run the system locally for development purposes:
 
-5.  **Run the Application**
-    ```bash
-    streamlit run app.py
-    # OR
-    bash run_app.sh
-    ```
+1. **Clone & Install**:
+   ```bash
+   git clone https://github.com/ShivamMaurya14/Disease_Prediction_System.git
+   cd Disease_Prediction_System
+   pip install -r requirements.txt
+   ```
 
-6.  **Access the App**
-    Open your browser and navigate to `http://localhost:8501`.
+2. **Run App**:
+   ```bash
+   streamlit run app.py
+   ```
 
 ---
 
