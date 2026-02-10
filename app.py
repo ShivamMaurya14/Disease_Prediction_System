@@ -10,17 +10,25 @@ from PIL import Image
 import tensorflow as tf
 import gdown
 
-# Global Fix: Monkey-patch Keras Flatten layer to handle the 'list' error bug
+# Global Fix: Monkey-patch Keras layers to handle the 'list' error bug (Keras 3)
 import tensorflow as tf
 try:
-    original_flatten_call = tf.keras.layers.Flatten.call
-    def patched_flatten_call(self, inputs, **kwargs):
-        if isinstance(inputs, (list, tuple)):
-            # If it's a list with one item, unwrap it
-            if len(inputs) == 1:
+    import keras
+    classes_to_patch = [tf.keras.layers.Flatten, tf.keras.layers.GlobalAveragePooling2D]
+    if hasattr(keras, 'layers'):
+        if hasattr(keras.layers, 'Flatten'): classes_to_patch.append(keras.layers.Flatten)
+        if hasattr(keras.layers, 'GlobalAveragePooling2D'): classes_to_patch.append(keras.layers.GlobalAveragePooling2D)
+    
+    def apply_patch(cls):
+        original_call = cls.call
+        def patched_call(self, inputs, *args, **kwargs):
+            if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
                 inputs = inputs[0]
-        return original_flatten_call(self, inputs, **kwargs)
-    tf.keras.layers.Flatten.call = patched_flatten_call
+            return original_call(self, inputs, *args, **kwargs)
+        cls.call = patched_call
+
+    for cls in set(classes_to_patch):
+        apply_patch(cls)
 except Exception as patch_err:
     pass
 
