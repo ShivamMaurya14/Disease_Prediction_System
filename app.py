@@ -280,16 +280,34 @@ def set_page(page_name):
 # --- Sidebar Navigation (Hidden for Custom Nav) ---
 # We are using custom buttons on Home, but let's keep a sidebar for direct access if needed
 with st.sidebar:
+    st.markdown("---")
     page_options = ["Home", "Diabetes", "Heart Disease", "Chest X-Ray", "Brain Tumor Detection"]
     current_index = page_options.index(st.session_state['page']) if st.session_state['page'] in page_options else 0
     selected = st.selectbox("Navigate", page_options, index=current_index)
+    
     if selected != st.session_state['page']:
         st.session_state['page'] = selected
         # Clear results on page change
         for key in ['res_diabetes', 'res_heart', 'res_xray', 'res_mri']:
             if key in st.session_state:
                 del st.session_state[key]
+        
+        # User requested: Reset all caches on page change
+        st.cache_resource.clear()
+        st.cache_data.clear()
         st.rerun()
+
+    st.markdown("---")
+    with st.expander("⚙️ System Management"):
+        if st.button("🔄 Reset App Cache"):
+            st.cache_resource.clear()
+            st.cache_data.clear()
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.success("Cache & Session cleared!")
+            st.rerun()
+        
+        st.info("Clears model memory and temporary results.")
 
 # --- Navbar / Header ---
 if st.session_state['page'] != 'Home':
@@ -301,6 +319,10 @@ if st.session_state['page'] != 'Home':
             for key in ['res_diabetes', 'res_heart', 'res_xray', 'res_mri']:
                 if key in st.session_state:
                     del st.session_state[key]
+            
+            # Reset caches on home navigation too
+            st.cache_resource.clear()
+            st.cache_data.clear()
             st.rerun()
     with col2:
         st.write("") # Spacer
@@ -523,6 +545,10 @@ if st.session_state['page'] == "Chest X-Ray":
                     
                     if xray_model is None:
                         st.error("⚠️ **X-Ray Model Loading Error**")
+                        if st.button("🔄 Clear Cache & Retry Loading", key="btn_retry_xray"):
+                            st.cache_resource.clear()
+                            st.rerun()
+                            
                         if xray_errors:
                             with st.expander("🔍 Technical Details (Loading failed)"):
                                 for err in xray_errors:
@@ -612,6 +638,18 @@ if st.session_state['page'] == "Brain Tumor Detection":
                     
                     if tumor_model is None:
                         st.error("⚠️ **Model Loading Error**")
+                        st.info("The model file might be corrupted or incompatible with the current environment.")
+                        
+                        if st.button("📥 Forced Re-download MRI Model", key="btn_redownload_mri"):
+                            with st.status("Re-downloading model..."):
+                                success, err = download_model_from_drive(model_id, keras_path)
+                                if success:
+                                    st.cache_resource.clear() # Clear cache so it tries loading again
+                                    st.success("✅ Model Re-downloaded! Please try analyzing again.")
+                                    st.rerun()
+                                else:
+                                    st.error(f"❌ Download failed: {err}")
+
                         if loading_errors:
                             with st.expander("🔍 Technical Details"):
                                 for err in loading_errors:
