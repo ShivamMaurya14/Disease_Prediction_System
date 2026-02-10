@@ -23,7 +23,7 @@ Experience a full walkthrough of the **MedSynapse Disease Prediction System** in
 
 ### 📺 YouTube Reference
 For an alternative viewing experience, watch the demonstration on YouTube:
-[![MedSynapse YouTube Demo](https://img.youtube.com/vi/f0nAUJNEYs0/0.jpg)](https://youtu.be/f0nAUJNEYs0)
+[▶️ YouTube Video Demonstration](https://youtu.be/f0nAUJNEYs0)
 
 ---
 
