@@ -47,54 +47,63 @@ class FixedPooling(tf.keras.layers.GlobalAveragePooling2D):
 def apply_keras3_compatibility_patches():
     """Apply comprehensive patches for Keras 3 compatibility issues with Flatten, GlobalAveragePooling2D, etc."""
     try:
+        import functools
+        
         def unwrap_tensor(x):
             """Recursively unwrap a tensor from a single-item list or tuple."""
             while isinstance(x, (list, tuple)) and len(x) == 1:
                 x = x[0]
             if isinstance(x, (list, tuple)) and len(x) > 0 and not hasattr(x, 'shape'):
+                # Handle cases like [tensor, mask] or just [tensor]
                 x = x[0]
             return x
 
         # List of layers that often suffer from the list-wrapping bug in Keras 3
         layers_to_patch = [
+            tf.keras.layers.Layer, # Patching the base class as a catch-all
             tf.keras.layers.Flatten,
             tf.keras.layers.GlobalAveragePooling2D,
             tf.keras.layers.GlobalMaxPooling2D,
             tf.keras.layers.Dense,
             tf.keras.layers.Dropout,
             tf.keras.layers.Rescaling,
-            tf.keras.layers.BatchNormalization
+            tf.keras.layers.BatchNormalization,
+            tf.keras.layers.Concatenate,
+            tf.keras.layers.Add
         ]
         
         for layer_class in layers_to_patch:
             if not hasattr(layer_class, '_original_call_patched'):
                 original_call = layer_class.call
                 
-                def make_patched_call(orig_call):
-                    def patched_call(self, inputs, *args, **kwargs):
-                        # Aggressively unwrap inputs
-                        inputs = unwrap_tensor(inputs)
-                        
-                        # Aggressively unwrap everything in args
-                        if args:
-                            new_args = [unwrap_tensor(arg) for arg in args]
-                            args = tuple(new_args)
-                        
-                        # If inputs is still None and we have something in args, use it
-                        if (inputs is None or (isinstance(inputs, (list, tuple)) and len(inputs) == 0)) and len(args) > 0:
-                            args_list = list(args)
-                            inputs = args_list.pop(0)
-                            args = tuple(args_list)
+                @functools.wraps(original_call)
+                def patched_call(self, inputs=None, *args, **kwargs):
+                    # Handle positional inputs if inputs is None
+                    if inputs is None and len(args) > 0:
+                        args_list = list(args)
+                        inputs = args_list.pop(0)
+                        args = tuple(args_list)
+                    
+                    # Aggressively unwrap inputs
+                    inputs = unwrap_tensor(inputs)
+                    
+                    # Aggressively unwrap everything in args
+                    if args:
+                        args = tuple(unwrap_tensor(arg) for arg in args)
+                    
+                    # Final check for list-wrapped input
+                    if inputs is not None and not hasattr(inputs, 'shape'):
+                        if isinstance(inputs, (list, tuple)) and len(inputs) > 0:
+                            inputs = inputs[0]
                             
-                        # Final check for list-wrapped input
-                        if inputs is not None and not hasattr(inputs, 'shape'):
-                            if isinstance(inputs, (list, tuple)) and len(inputs) > 0:
-                                inputs = inputs[0]
-                                
-                        return orig_call(self, inputs, *args, **kwargs)
-                    return patched_call
+                    # Attempt to call with original arguments
+                    try:
+                        return original_call(self, inputs, *args, **kwargs)
+                    except TypeError:
+                        # Fallback for layers with very strict signatures
+                        return original_call(self, inputs)
                 
-                layer_class.call = make_patched_call(original_call)
+                layer_class.call = patched_call
                 layer_class._original_call_patched = True
             
     except Exception:
@@ -256,13 +265,15 @@ def rebuild_brain_tumor_model(weights_path):
         # Re-apply patches just in case
         apply_keras3_compatibility_patches()
         
-        # Build according to notebook architecture
-        base_model = tf.keras.applications.Xception(weights=None, include_top=False, input_shape=(299, 299, 3))
+        # Build according to notebook architecture (Sequential model)
+        # Note: pooling='max' is critical here as it's used in the notebook
+        base_model = tf.keras.applications.Xception(weights=None, include_top=False, input_shape=(299, 299, 3), pooling='max')
         model = tf.keras.Sequential([
             base_model,
             FixedFlatten(),
-            tf.keras.layers.Dense(256, activation='relu'),
-            tf.keras.layers.Dropout(0.5),
+            tf.keras.layers.Dropout(rate=0.3),
+            tf.keras.layers.Dense(128, activation='relu'),
+            tf.keras.layers.Dropout(rate=0.25),
             tf.keras.layers.Dense(4, activation='softmax')
         ])
         
@@ -682,21 +693,19 @@ if st.session_state['page'] == "Chest X-Ray":
 if st.session_state['page'] == "Brain Tumor Detection":
     st.markdown("<div class='main-header'>Brain Tumor Detection</div>", unsafe_allow_html=True)
     
-    # Model Path Check
     keras_path = 'models/brain_tumor_model.keras'
     model_id = "12oBWm5zYq7az62TPq7w68iFz5IOTygrG"
     
     # Session state for model readiness
-    if 'model_ready' not in st.session_state:
-        st.session_state['model_ready'] = os.path.exists(keras_path)
+    # Check if file exists AND if we have successfully loaded it at least once this session
+    model_file_exists = os.path.exists(keras_path)
 
-    if not st.session_state['model_ready']:
+    if not model_file_exists:
         st.info("💡 The brain tumor model needs to be downloaded before you can perform analysis.")
         if st.button("📥 Download Model from Google Drive", key="btn_download_model"):
             with st.status("Downloading model..."):
                 success, err = download_model_from_drive(model_id, keras_path)
                 if success:
-                    st.session_state['model_ready'] = True
                     st.success("✅ Model Download Successful! Now you can analyze MRI scans.")
                     st.balloons()
                     st.rerun()
@@ -704,8 +713,8 @@ if st.session_state['page'] == "Brain Tumor Detection":
                     st.error(f"❌ Download failed: {err}")
     
     else:
-        # Only show analysis UI if model is ready
-        st.success("✅ Brain Tumor Model is ready for analysis.")
+        # File exists, but try loading to confirm it's valid
+        st.success("✅ Brain Tumor Model file found.")
         st.write("Upload an MRI scan to detect brain tumors.")
         
         uploaded_file = st.file_uploader("Choose an MRI Image", type=["jpg", "jpeg", "png"])
@@ -714,27 +723,33 @@ if st.session_state['page'] == "Brain Tumor Detection":
             uploaded_img = Image.open(uploaded_file)
             st.image(uploaded_img, caption="Uploaded MRI", width="stretch")
             
-            if st.button("Analyze MRI", key="btn_analyze_mri", width="stretch"):
+            if st.button("🔍 Check for Tumors", key="btn_analyze_mri", width="stretch"):
                 with st.spinner('Analyzing MRI scan...'):
                     # Load model using cached function
                     tumor_model, loading_errors = load_brain_tumor_model()
                     
                     if tumor_model is None:
-                        st.error("⚠️ **Model Loading Error**")
-                        st.info("The model file might be corrupted or incompatible with the current environment.")
+                        st.error("⚠️ **Brain Tumor Model Analysis Failed**")
+                        st.info("We encountered technical difficulties loading the AI model. This can often be fixed by resetting the app cache or re-downloading the model.")
                         
-                        if st.button("📥 Forced Re-download MRI Model", key="btn_redownload_mri"):
-                            with st.status("Re-downloading model..."):
-                                success, err = download_model_from_drive(model_id, keras_path)
-                                if success:
-                                    st.cache_resource.clear() # Clear cache so it tries loading again
-                                    st.success("✅ Model Re-downloaded! Please try analyzing again.")
-                                    st.rerun()
-                                else:
-                                    st.error(f"❌ Download failed: {err}")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button("🔄 Reset Cache & Retry", key="btn_retry_mri"):
+                                st.cache_resource.clear()
+                                st.rerun()
+                        with col2:
+                            if st.button("📥 Re-download Model", key="btn_redownload_mri"):
+                                with st.status("Re-downloading model..."):
+                                    success, err = download_model_from_drive(model_id, keras_path)
+                                    if success:
+                                        st.cache_resource.clear()
+                                        st.success("✅ Success! Please try again.")
+                                        st.rerun()
+                                    else:
+                                        st.error(f"❌ Error: {err}")
 
                         if loading_errors:
-                            with st.expander("🔍 Technical Details"):
+                            with st.expander("🔍 Show Technical Error Log"):
                                 for err in loading_errors:
                                     st.code(err)
                     else:
