@@ -15,9 +15,11 @@
 
 Experience a full walkthrough of the **MedSynapse Disease Prediction System** in action:
 
-![MedSynapse Demo](https://github.com/ShivamMaurya14/Disease_Prediction_System/raw/main/assets/demo.mp4)
+<div align="center">
+  <img src="./assets/demo.gif" width="100%" alt="MedSynapse Demo GIF">
+</div>
 
-> *The video covers MRI analysis, X-Ray detection, and tabular data predictions.*
+> *The video covers MRI analysis, X-Ray detection, and tabular data predictions, including heart disease prediction.*
 
 ### 📺 YouTube Reference
 For an alternative viewing experience, watch the demonstration on YouTube:
