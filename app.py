@@ -195,22 +195,12 @@ def download_model_from_drive(file_id, output_path):
 
 @st.cache_resource
 def load_brain_tumor_model():
-    """Load brain tumor model with support for .keras, SavedModel, and H5 formats. 
-    Downloads from Drive if not found locally."""
+    """Load brain tumor model with support for .keras, SavedModel, and H5 formats."""
     errors = []
     
-    file_id = "12oBWm5zYq7az62TPq7w68iFz5IOTygrG"
     keras_path = 'models/brain_tumor_model.keras'
-    
-    # Check if any local version exists
     savedmodel_path = 'models/brain_tumor_model'
     h5_path = 'models/brain_tumor_model.h5'
-    
-    if not (os.path.exists(keras_path) or os.path.exists(savedmodel_path) or os.path.exists(h5_path)):
-        with st.status("📥 Downloading Brain Tumor Model from Google Drive..."):
-            success, err = download_model_from_drive(file_id, keras_path)
-            if not success:
-                errors.append(f"Download error: {err}")
     
     # Prepare custom objects for model loading
     custom_objects = {
@@ -236,7 +226,7 @@ def load_brain_tumor_model():
     
     try:
         if os.path.exists(savedmodel_path):
-            tumor_model = tf.keras.models.load_model(savedmodel_path, compile=False)
+            tumor_model = tf.keras.models.load_model(savedmodel_path, compile=False, custom_objects=custom_objects)
             return tumor_model, None
     except Exception as e:
         errors.append(f"SavedModel: {str(e)}")
@@ -579,70 +569,84 @@ if st.session_state['page'] == "Chest X-Ray":
 # --- Brain Tumor Detection Page ---
 if st.session_state['page'] == "Brain Tumor Detection":
     st.markdown("<div class='main-header'>Brain Tumor Detection</div>", unsafe_allow_html=True)
-    st.write("Upload an MRI scan to detect brain tumors.")
-
-    # The model will be automatically downloaded from Google Drive if missing locally 
-    # during the analysis phase (using load_brain_tumor_model)
     
-    uploaded_file = st.file_uploader("Choose an MRI Image", type=["jpg", "jpeg", "png"])
+    # Model Path Check
+    keras_path = 'models/brain_tumor_model.keras'
+    model_id = "12oBWm5zYq7az62TPq7w68iFz5IOTygrG"
+    
+    # Session state for model readiness
+    if 'model_ready' not in st.session_state:
+        st.session_state['model_ready'] = os.path.exists(keras_path)
 
-    if uploaded_file is not None:
-        uploaded_img = Image.open(uploaded_file)
-        st.image(uploaded_img, caption="Uploaded MRI", width="stretch")
-        
-        if st.button("Analyze MRI", key="btn_analyze_mri", width="stretch"):
-            with st.spinner('Analyzing MRI scan...'):
-                # Load model using cached function
-                tumor_model, loading_errors = load_brain_tumor_model()
-                
-                if tumor_model is None:
-                    st.error("⚠️ **Model Loading Error**")
-                    st.warning("""
-                    The brain tumor model could not be loaded even from the new `.keras` file.
-                    
-                    **To fix this:**
-                    1. Ensure the file `models/brain_tumor_model.keras` is not corrupted.
-                    2. If you just retrained the model, make sure you saved it using `model.save('models/brain_tumor_model.keras')`.
-                    """)
-                    if loading_errors:
-                        with st.expander("🔍 What does this mean? (Technical Details)"):
-                            st.write("The app tried multiple ways to load your model, but they all failed with these messages:")
-                            for err in loading_errors:
-                                st.code(err)
+    if not st.session_state['model_ready']:
+        st.info("💡 The brain tumor model needs to be downloaded before you can perform analysis.")
+        if st.button("📥 Download Model from Google Drive", key="btn_download_model"):
+            with st.status("Downloading model..."):
+                success, err = download_model_from_drive(model_id, keras_path)
+                if success:
+                    st.session_state['model_ready'] = True
+                    st.success("✅ Model Download Successful! Now you can analyze MRI scans.")
+                    st.balloons()
+                    st.rerun()
                 else:
-                    try:
-                        # Preprocess
-                        img = uploaded_img.resize((299, 299))
-                        img_array = np.array(img)
-                        
-                        # Handle grayscale images
-                        if len(img_array.shape) == 2:
-                            img_array = np.stack([img_array] * 3, axis=-1)
-                        elif img_array.shape[-1] == 4:
-                            img_array = img_array[:, :, :3]
-                        
-                        img_array = np.expand_dims(img_array, axis=0)
-                        img_array = img_array / 255.0 # Rescale as per training
-                        
-                        # Predict using safe wrapper
-                        prediction = safe_model_predict(tumor_model, img_array, verbose=0)
-                        class_indices = {'glioma': 0, 'meningioma': 1, 'notumor': 2, 'pituitary': 3}
-                        class_names = list(class_indices.keys())
-                        predicted_class = class_names[np.argmax(prediction)]
-                        confidence = np.max(prediction) * 100
-                        
-                        st.session_state['res_mri'] = {
-                            'class': predicted_class,
-                            'conf': confidence
-                        }
-                        st.success("Analysis Complete!")
-                        st.rerun()
-                        
-                    except Exception as e:
-                        import traceback
-                        st.error(f"Error during analysis: {e}")
-                        with st.expander("Show detailed error"):
-                            st.code(traceback.format_exc())
+                    st.error(f"❌ Download failed: {err}")
+    
+    else:
+        # Only show analysis UI if model is ready
+        st.success("✅ Brain Tumor Model is ready for analysis.")
+        st.write("Upload an MRI scan to detect brain tumors.")
+        
+        uploaded_file = st.file_uploader("Choose an MRI Image", type=["jpg", "jpeg", "png"])
+    
+        if uploaded_file is not None:
+            uploaded_img = Image.open(uploaded_file)
+            st.image(uploaded_img, caption="Uploaded MRI", width="stretch")
+            
+            if st.button("Analyze MRI", key="btn_analyze_mri", width="stretch"):
+                with st.spinner('Analyzing MRI scan...'):
+                    # Load model using cached function
+                    tumor_model, loading_errors = load_brain_tumor_model()
+                    
+                    if tumor_model is None:
+                        st.error("⚠️ **Model Loading Error**")
+                        if loading_errors:
+                            with st.expander("🔍 Technical Details"):
+                                for err in loading_errors:
+                                    st.code(err)
+                    else:
+                        try:
+                            # Preprocess
+                            img = uploaded_img.resize((299, 299))
+                            img_array = np.array(img)
+                            
+                            # Handle grayscale images
+                            if len(img_array.shape) == 2:
+                                img_array = np.stack([img_array] * 3, axis=-1)
+                            elif img_array.shape[-1] == 4:
+                                img_array = img_array[:, :, :3]
+                            
+                            img_array = np.expand_dims(img_array, axis=0)
+                            img_array = img_array / 255.0 # Rescale as per training
+                            
+                            # Predict using safe wrapper
+                            prediction = safe_model_predict(tumor_model, img_array, verbose=0)
+                            class_indices = {'glioma': 0, 'meningioma': 1, 'notumor': 2, 'pituitary': 3}
+                            class_names = list(class_indices.keys())
+                            predicted_class = class_names[np.argmax(prediction)]
+                            confidence = np.max(prediction) * 100
+                            
+                            st.session_state['res_mri'] = {
+                                'class': predicted_class,
+                                'conf': confidence
+                            }
+                            st.success("Analysis Complete!")
+                            st.rerun()
+                            
+                        except Exception as e:
+                            import traceback
+                            st.error(f"Error during analysis: {e}")
+                            with st.expander("Show detailed error"):
+                                st.code(traceback.format_exc())
 
     if 'res_mri' in st.session_state:
         res = st.session_state['res_mri']
