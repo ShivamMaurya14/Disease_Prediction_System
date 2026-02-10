@@ -15,13 +15,13 @@
 
 The **MedSynapse Disease Prediction System** is deployed and ready for immediate use. You can access the fully functional application without any local setup via the link below:
 
-### [� Launch Live Application](https://dps-medisynapse.streamlit.app/#team-medsynapse)
+### [👉 Launch Live Application](https://dps-medisynapse.streamlit.app)
 
 > **Note**: The live version handles all model loading and processing in the cloud, provided by Streamlit Cloud.
 
 ---
 
-## �📽️ Video Demonstration
+## 📽️ Video Demonstration
 
 Experience a full walkthrough of the **MedSynapse Disease Prediction System** in action:
 
