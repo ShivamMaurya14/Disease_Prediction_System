@@ -11,14 +11,13 @@
 
 ---
 
-## �️ Video Demonstration
+## 📽️ Video Demonstration
 
-<!-- Embed your video here. You can use a YouTube link or a direct file path if hosted in the repo -->
-[![Watch the Demo](https://img.youtube.com/vi/YOUR_VIDEO_ID_HERE/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID_HERE)
+Experience a full walkthrough of the **MedSynapse Disease Prediction System** in action:
 
-> *Click the image above to watch the full walkthrough of the application.*
+[▶️ **Watch the Demo Video**](./assets/demo.mp4)
 
-*(Alternatively, place your video file in the repository and link it here: `[Download Demo Video](./video/demo.mp4)`)*
+> *The video covers MRI analysis, X-Ray detection, and tabular data predictions.*
 
 ---
 
