@@ -11,7 +11,17 @@
 
 ---
 
-## 📽️ Video Demonstration
+## 🌐 Live Access
+
+The **MedSynapse Disease Prediction System** is deployed and ready for immediate use. You can access the fully functional application without any local setup via the link below:
+
+### [� Launch Live Application](https://dps-medisynapse.streamlit.app/#team-medsynapse)
+
+> **Note**: The live version handles all model loading and processing in the cloud, provided by Streamlit Cloud.
+
+---
+
+## �📽️ Video Demonstration
 
 Experience a full walkthrough of the **MedSynapse Disease Prediction System** in action:
 
@@ -100,14 +110,6 @@ Our solution combines three predictive models into a unified, user-friendly inte
 | **Environment** | ![Anaconda](https://img.shields.io/badge/-Anaconda-44A833?logo=anaconda&logoColor=white) ![Git](https://img.shields.io/badge/-Git-F05032?logo=git&logoColor=white) |
 
 ---
-
-## 🌐 Live Access
-
-The **MedSynapse Disease Prediction System** is deployed and ready for immediate use. You can access the fully functional application without any local setup via the link below:
-
-### [👉 Launch Live Application](https://dps-medisynapse.streamlit.app/#team-medsynapse)
-
-> **Note**: The live version handles all model loading and processing in the cloud, provided by Streamlit Cloud.
 
 ---
 
