@@ -4,6 +4,39 @@ import os
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
+# Apply Keras 3 compatibility patches
+def apply_keras3_compatibility_patches():
+    """Apply comprehensive patches for Keras 3 compatibility issues with Flatten, GlobalAveragePooling2D, etc."""
+    try:
+        layers_to_patch = [
+            tf.keras.layers.Flatten,
+            tf.keras.layers.GlobalAveragePooling2D,
+            tf.keras.layers.GlobalMaxPooling2D,
+            tf.keras.layers.Reshape,
+        ]
+        
+        for layer_class in layers_to_patch:
+            if not hasattr(layer_class, '_original_call_patched'):
+                original_call = layer_class.call
+                
+                def make_patched_call(orig_call):
+                    def patched_call(self, inputs, *args, **kwargs):
+                        if isinstance(inputs, (list, tuple)):
+                            if len(inputs) == 1:
+                                inputs = inputs[0]
+                        if isinstance(inputs, list) and len(inputs) == 1:
+                            if hasattr(inputs[0], 'shape'):
+                                inputs = inputs[0]
+                        return orig_call(self, inputs, *args, **kwargs)
+                    return patched_call
+                
+                layer_class.call = make_patched_call(original_call)
+                layer_class._original_call_patched = True
+    except Exception as patch_err:
+        print(f"Warning: Keras 3 patch application encountered an issue: {patch_err}")
+
+apply_keras3_compatibility_patches()
+
 # Construct absolute path to models directory
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODELS_DIR = os.path.join(BASE_DIR, 'models')
@@ -48,35 +81,58 @@ def verify_xray_model():
     print("\nVerifying Chest X-Ray Model...")
     try:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-        model_path = os.path.join(MODELS_DIR, 'chest_xray_model.h5')
+        model_path = os.path.join(MODELS_DIR, 'xrays_pneumonia.keras')
         
-        model = load_model(model_path)
+        if not os.path.exists(model_path):
+            print(f"Chest X-Ray Model not found at {model_path}")
+            return
+        
+        custom_objects = {
+            'Flatten': tf.keras.layers.Flatten,
+            'GlobalAveragePooling2D': tf.keras.layers.GlobalAveragePooling2D,
+        }
+
+        model = load_model(model_path, custom_objects=custom_objects, compile=False)
         
         # Dummy image input: (1, 224, 224, 3)
         input_data = np.random.rand(1, 224, 224, 3).astype(np.float32)
-        prediction = model.predict(input_data)
+        prediction = model.predict(input_data, verbose=0)
         print(f"Chest X-Ray Model Verified! Prediction shape: {prediction.shape}, Value: {prediction[0][0]}")
     except Exception as e:
         print(f"Error verifying Chest X-Ray Model: {e}")
+        import traceback
+        traceback.print_exc()
 
 def verify_brain_tumor_model():
     print("\nVerifying Brain Tumor Model...")
     try:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-        model_path = os.path.join(MODELS_DIR, 'brain_tumor_model.h5')
+        
+        # Check for .keras format first (newer format)
+        keras_path = os.path.join(MODELS_DIR, 'brain_tumor_model.keras')
+        h5_path = os.path.join(MODELS_DIR, 'brain_tumor_model.h5')
+        
+        model_path = keras_path if os.path.exists(keras_path) else h5_path
         
         if not os.path.exists(model_path):
-            print(f"Brain Tumor Model not found at {model_path}. Please train the model using notebooks/Final_Brain_Tumor_Prediction.ipynb")
+            print(f"Brain Tumor Model not found at {keras_path} or {h5_path}. Please train the model using notebooks/Final_Brain_Tumor_Prediction.ipynb")
             return
 
-        model = load_model(model_path)
+        custom_objects = {
+            'Flatten': tf.keras.layers.Flatten,
+            'GlobalAveragePooling2D': tf.keras.layers.GlobalAveragePooling2D,
+        }
+        
+        model = load_model(model_path, custom_objects=custom_objects, compile=False)
         
         # Dummy image input: (1, 299, 299, 3)
         input_data = np.random.rand(1, 299, 299, 3).astype(np.float32)
-        prediction = model.predict(input_data)
+        prediction = model.predict(input_data, verbose=0)
         print(f"Brain Tumor Model Verified! Prediction shape: {prediction.shape}, Max Prob: {np.max(prediction):.4f}")
     except Exception as e:
         print(f"Error verifying Brain Tumor Model: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     verify_diabetes_model()

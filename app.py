@@ -11,35 +11,67 @@ from PIL import Image
 import tensorflow as tf
 import gdown
 
-# Global Fix: Monkey-patch Keras layers to handle the 'list' error bug (Keras 3)
+# Global Fix: Comprehensive Keras 3 compatibility patch for Flatten and pooling layers
 import tensorflow as tf
-try:
-    import keras
-    
-    def robust_patched_call(self, inputs, *args, **kwargs):
-        # Unwrap single-item lists/tuples
-        if isinstance(inputs, (list, tuple)) and len(inputs) == 1:
-            inputs = inputs[0]
-        # Call the original method
-        return self._original_call(inputs, *args, **kwargs)
 
-    def apply_patch(cls):
-        if not hasattr(cls, '_original_call'):
-            cls._original_call = cls.call
-            cls.call = robust_patched_call
-
-    # Target layers known to have this issue in Keras 3 + Xception/MobileNet
-    to_patch = [tf.keras.layers.Flatten, tf.keras.layers.GlobalAveragePooling2D]
+def apply_keras3_compatibility_patches():
+    """Apply comprehensive patches for Keras 3 compatibility issues with Flatten, GlobalAveragePooling2D, etc."""
     try:
-        if 'keras' in globals() or 'keras' in sys.modules:
+        # Get all layer classes to patch
+        layers_to_patch = [
+            tf.keras.layers.Flatten,
+            tf.keras.layers.GlobalAveragePooling2D,
+            tf.keras.layers.GlobalMaxPooling2D,
+            tf.keras.layers.Reshape,
+        ]
+        
+        for layer_class in layers_to_patch:
+            if not hasattr(layer_class, '_original_call_patched'):
+                original_call = layer_class.call
+                
+                def make_patched_call(orig_call):
+                    def patched_call(self, inputs, *args, **kwargs):
+                        # Unwrap single-item lists/tuples that come from Keras 3 functional API
+                        if isinstance(inputs, (list, tuple)):
+                            if len(inputs) == 1:
+                                inputs = inputs[0]
+                            elif len(inputs) > 1:
+                                # For layers expecting multiple inputs, keep as list
+                                pass
+                        
+                        # Handle edge case: if inputs is a Keras tensor wrapped in a list
+                        # This can happen with certain model architectures
+                        if isinstance(inputs, list) and len(inputs) == 1:
+                            if hasattr(inputs[0], 'shape'):  # It's a tensor
+                                inputs = inputs[0]
+                        
+                        return orig_call(self, inputs, *args, **kwargs)
+                    return patched_call
+                
+                layer_class.call = make_patched_call(original_call)
+                layer_class._original_call_patched = True
+        
+        # Also try to patch keras module if available
+        try:
             import keras
-            to_patch.extend([keras.layers.Flatten, keras.layers.GlobalAveragePooling2D])
-    except: pass
+            keras_layers = [
+                keras.layers.Flatten,
+                keras.layers.GlobalAveragePooling2D,
+                keras.layers.GlobalMaxPooling2D,
+            ]
+            for layer_class in keras_layers:
+                if layer_class not in layers_to_patch and not hasattr(layer_class, '_original_call_patched'):
+                    original_call = layer_class.call
+                    layer_class.call = make_patched_call(original_call)
+                    layer_class._original_call_patched = True
+        except:
+            pass
+            
+    except Exception as patch_err:
+        print(f"Warning: Keras 3 patch application encountered an issue: {patch_err}")
 
-    for cls in set(to_patch):
-        apply_patch(cls)
-except Exception as patch_err:
-    pass
+# Apply patches immediately on module load
+apply_keras3_compatibility_patches()
 
 # Set Page Config
 st.set_page_config(
@@ -125,7 +157,10 @@ def load_xray_model():
     errors = []
     xray_path = 'models/xrays_pneumonia.keras'
     
-    custom_objects = {'Flatten': tf.keras.layers.Flatten}
+    custom_objects = {
+        'Flatten': tf.keras.layers.Flatten,
+        'GlobalAveragePooling2D': tf.keras.layers.GlobalAveragePooling2D,
+    }
     
     try:
         if os.path.exists(xray_path):
@@ -162,7 +197,6 @@ def download_model_from_drive(file_id, output_path):
 def load_brain_tumor_model():
     """Load brain tumor model with support for .keras, SavedModel, and H5 formats. 
     Downloads from Drive if not found locally."""
-    # Note: Flatten patch is already applied globally at the top of the file
     errors = []
     
     file_id = "12oBWm5zYq7az62TPq7w68iFz5IOTygrG"
@@ -178,8 +212,11 @@ def load_brain_tumor_model():
             if not success:
                 errors.append(f"Download error: {err}")
     
-    # Prepare custom objects to force the patched Flatten layer during deserialization
-    custom_objects = {'Flatten': tf.keras.layers.Flatten}
+    # Prepare custom objects for model loading
+    custom_objects = {
+        'Flatten': tf.keras.layers.Flatten,
+        'GlobalAveragePooling2D': tf.keras.layers.GlobalAveragePooling2D,
+    }
     
     try:
         if os.path.exists(keras_path):
@@ -189,10 +226,13 @@ def load_brain_tumor_model():
                 return tumor_model, None
             except Exception as e_inner:
                 # Secondary attempt: Loading with safe_mode=False
-                tumor_model = tf.keras.models.load_model(keras_path, compile=False, safe_mode=False, custom_objects=custom_objects)
-                return tumor_model, None
+                try:
+                    tumor_model = tf.keras.models.load_model(keras_path, compile=False, safe_mode=False, custom_objects=custom_objects)
+                    return tumor_model, None
+                except Exception as e_inner2:
+                    errors.append(f".keras: {str(e_inner2)}")
     except Exception as e:
-        errors.append(f".keras: {str(e)}")
+        errors.append(f".keras outer: {str(e)}")
     
     try:
         if os.path.exists(savedmodel_path):
@@ -203,43 +243,36 @@ def load_brain_tumor_model():
     
     try:
         if os.path.exists(h5_path):
-            tumor_model = tf.keras.models.load_model(h5_path, compile=False)
+            tumor_model = tf.keras.models.load_model(h5_path, compile=False, custom_objects=custom_objects)
             return tumor_model, None
     except Exception as e:
         errors.append(f".h5 (standard): {str(e)}")
         try:
-            tumor_model = tf.keras.models.load_model(h5_path, compile=False, safe_mode=False)
+            tumor_model = tf.keras.models.load_model(h5_path, compile=False, safe_mode=False, custom_objects=custom_objects)
             return tumor_model, None
         except Exception as e2:
             errors.append(f".h5 (safe_mode=False): {str(e2)}")
-            try:
-                # Rebuild matching Xception architecture
-                from tensorflow.keras.applications import Xception
-                from tensorflow.keras.layers import Dense, Dropout, Flatten
-                from tensorflow.keras.models import Sequential
-                
-                base_model = Xception(include_top=False, weights=None, input_shape=(299, 299, 3), pooling='max')
-                
-                tumor_model = Sequential([
-                    base_model,
-                    Flatten(), # Use standard Flatten (it's patched)
-                    Dropout(rate=0.3),
-                    Dense(128, activation='relu'),
-                    Dropout(rate=0.25),
-                    Dense(4, activation='softmax')
-                ])
-                
-                # Try to load weights
-                # Weights might be in H5 or .keras (as weights)
-                if os.path.exists(keras_path):
-                    tumor_model.load_weights(keras_path)
-                else:
-                    tumor_model.load_weights(h5_path)
-                return tumor_model, None
-            except Exception as e3:
-                errors.append(f"Weights-only: {str(e3)}")
-                
+            
     return None, errors
+
+def safe_model_predict(model, input_data, verbose=0):
+    """Wrapper for model.predict() that handles Keras 3 compatibility issues"""
+    try:
+        # First try standard prediction
+        return model.predict(input_data, verbose=verbose)
+    except Exception as e:
+        # If it fails, try with batch operations explicitly
+        if "'list' object has no attribute 'shape'" in str(e):
+            # This is our specific Keras 3 issue - try inference approach
+            try:
+                # Some models work better with functional API call
+                if hasattr(model, '__call__'):
+                    result = model(input_data, training=False)
+                    return result.numpy() if hasattr(result, 'numpy') else result
+            except:
+                pass
+        raise
+
 
 # --- Sidebar ---
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3063/3063176.png", width=100)
@@ -591,8 +624,8 @@ if st.session_state['page'] == "Brain Tumor Detection":
                         img_array = np.expand_dims(img_array, axis=0)
                         img_array = img_array / 255.0 # Rescale as per training
                         
-                        # Predict
-                        prediction = tumor_model.predict(img_array)
+                        # Predict using safe wrapper
+                        prediction = safe_model_predict(tumor_model, img_array, verbose=0)
                         class_indices = {'glioma': 0, 'meningioma': 1, 'notumor': 2, 'pituitary': 3}
                         class_names = list(class_indices.keys())
                         predicted_class = class_names[np.argmax(prediction)]
