@@ -1,4 +1,4 @@
-# Disease Prediction System 🏥
+# Disease Prediction System 🏥 (Team MEDSYNAPSE)
 
 > **Thinking Machine Hackathon Submission** - *Indian Institute of Information Technology, Pune*  
 > *"Revolutionizing Early Diagnostics with Artificial Intelligence"*
