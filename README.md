@@ -170,8 +170,9 @@ python scripts/verify_models.py
 
 
 -   **Shivam Maurya** - *AI & Robotics Engineer*
--   **[Saurav Tiwari]** - *Frontend & Streamlit Developer*
--   **[Rishabh Panday]** - *Data Scientist/ML Engineer*
+-   **[Peush Yadav]** - *Frontend & Streamlit Developer*
+-   **[Sherya Shinde]** - *Backend Developer*
+-   **[Saurav Tiwari]** - *Data Scientist/ML Engineer*
 
 ---
 
