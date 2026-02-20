@@ -1,6 +1,5 @@
 # Disease Prediction System 🏥 (Team MEDSYNAPSE)
 
-> **Thinking Machine Hackathon Submission** - *Indian Institute of Information Technology, Pune*  
 > *"Revolutionizing Early Diagnostics with Artificial Intelligence"*
 
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://streamlit.io)
@@ -166,13 +165,9 @@ python scripts/verify_models.py
 ## 👥 Contributors
 
 **Team - MEDSYNAPSE**  
-*Thinking Machine Hackathon 2026*
-
 
 -   **Shivam Maurya** - *AI & Robotics Engineer*
--   **[Peush Yadav]** - *Frontend & Streamlit Developer*
--   **[Sherya Shinde]** - *Backend Developer*
--   **[Saurav Tiwari]** - *Data Scientist/ML Engineer*
+-   **[Sherya Shinde]** - *Data Scientist/ML Engineer*
 
 ---
 
