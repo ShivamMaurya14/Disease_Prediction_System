@@ -1,22 +1,30 @@
-# Disease Prediction System 🏥 (Team MEDSYNAPSE)
+<div align="center">
+  <h1>MedSynapse: Disease Prediction System 🏥</h1>
+  <h3>🏆 Project for "Thinking Machine" Competition - IIIT Pune</h3>
 
-> *"Revolutionizing Early Diagnostics with Artificial Intelligence"*
+  <p><i>"Revolutionizing Early Diagnostics with Artificial Intelligence"</i></p>
 
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://streamlit.io)
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://www.tensorflow.org/)
-[![Scikit-Learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+  <div>
+    <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white" alt="Streamlit">
+    <img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+    <img src="https://img.shields.io/badge/TensorFlow-2.x-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" alt="TensorFlow">
+    <img src="https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="Scikit-Learn">
+  </div>
+</div>
 
 ---
 
 ## 🌐 Live Access
 
-The **MedSynapse Disease Prediction System** is deployed and ready for immediate use. You can access the fully functional application without any local setup via the link below:
+The **MedSynapse Disease Prediction System** is deployed and ready for immediate use.
 
-### [👉 Launch Live Application](https://dps-medisynapse.streamlit.app)
+<div align="center">
+  <a href="https://dps-medisynapse.streamlit.app">
+    <img src="https://img.shields.io/badge/Launch%20Live%20Application-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white" alt="Launch App">
+  </a>
+</div>
 
-> **Note**: The live version handles all model loading and processing in the cloud, provided by Streamlit Cloud.
+> **Note**: The live version handles all model loading and processing in the cloud via Streamlit Cloud.
 
 ---
 
@@ -38,12 +46,13 @@ For an alternative viewing experience, watch the demonstration on YouTube:
 
 ## 📑 Table of Contents
 - [Overview](#-overview)
-- [Problem Statement](#-problem-statement)
+- [Problem Statement](#-problem-statement--competition-prompts)
 - [Solution Architecture](#-solution-architecture)
-- [Key Features](#-key-features)
+- [Key Features](#-key-features--diagnostic-modules)
+- [Scientific Methodology](#-scientific-methodology)
 - [Tech Stack](#-tech-stack)
-- [Installation & Setup](#-installation--setup)
-- [Usage](#-usage)
+- [Installation & Setup](#-local-developer-setup)
+- [Project structure](#-project-structure)
 - [Future Scope](#-future-scope)
 - [Contributors](#-contributors)
 
@@ -51,16 +60,20 @@ For an alternative viewing experience, watch the demonstration on YouTube:
 
 ## 🚀 Overview
 
-The **Disease Prediction System** is an integrated healthcare platform designed to assist medical professionals and individuals in the early detection of critical diseases. Leveraging the power of **Machine Learning** and **Deep Learning**, our application provides instant, accurate risk assessments for Diabetes, Heart Disease, and Pneumonia.
+**MedSynapse** is an advanced integrated healthcare platform developed for the **"Thinking Machine" competition** at the **Indian Institute of Information Technology (IIIT), Pune**. 
 
-## 🎯 Problem Statement
+The system is designed to assist medical professionals and individuals in the early detection of critical diseases. Leveraging the power of **Machine Learning** and **Deep Learning**, our application provides instant, accurate risk assessments across two primary diagnostic domains:
+1. **Multi-disease Prediction Models** (Diabetes & Heart Disease)
+2. **Medical Image Analysis** (Chest X-Ray Pneumonia & MRI Brain Tumor detection)
 
-Early diagnosis is crucial for effective treatment and management of chronic diseases. However, access to rapid diagnostics can be limited by:
--   **Cost**: Expensive medical tests.
--   **Time**: Long waiting periods for results.
--   **Accessibility**: Lack of specialists in remote areas.
+## 🎯 Problem Statement & Competition Prompts
 
-Our goal is to bridge this gap by providing a **low-cost, AI-driven initial screening tool**.
+Early diagnosis is crucial for effective treatment and management of chronic diseases. This project specifically addresses the **Diagnostic Tools** track of the **Thinking Machine** competition, focusing on the following suggested problem statements:
+
+1.  **Multi-disease Prediction Models**: Developing robust models for systemic diseases like **Diabetes** and **Heart Disease** using clinical diagnostic data.
+2.  **Medical Image Analysis**: Utilizing Deep Learning for anomaly detection in medical imaging, specifically **Chest X-Ray (Pneumonia)** and **MRI (Brain Tumor)** analysis.
+
+Our goal is to bridge the diagnostic gap by providing a **low-cost, AI-driven initial screening tool** that addresses accessibility, cost, and time constraints in modern healthcare.
 
 ## 💡 Solution Architecture
 
@@ -71,31 +84,23 @@ Our solution combines three predictive models into a unified, user-friendly inte
 
 ---
 
-## 🌟 Key Features
+## 🌟 Key Features & Diagnostic Modules
 
-### 🩸 Diabetes Prediction
-*Predicts the likelihood of diabetes based on diagnostic measures.*
--   **Model**: Random Forest Classifier
--   **Accuracy**: ~98% (on test set)
--   **Inputs**: Glucose, BMI, Insulin, Age, Blood Pressure, etc.
+| Module | Purpose | Model / Technique | Key Inputs |
+| :--- | :--- | :--- | :--- |
+| **🩸 Diabetes** | Likelihood Prediction | **Random Forest Classifier** | Glucose, BMI, Insulin, Age |
+| **❤️ Heart Disease** | Cardiovascular Risk | **Logistic Regression** | Chest Pain Type, Max HR, ECG |
+| **🩻 Pneumonia** | X-Ray Image Detection | **CNN (Custom Architecture)** | Chest X-Ray (JPEG/PNG) |
+| **🧠 Brain Tumor** | MRI Scan Classification | **Xception (Transfer Learning)** | Brain MRI (4 Classes) |
 
-### ❤️ Heart Disease Prediction
-*Assesses cardiovascular health risks.*
--   **Model**: Logistic Regression / Random Forest
--   **Accuracy**: ~85%
--   **Inputs**: Chest Pain Type, Cholesterol, Max Heart Rate, ECG, etc.
+---
 
-### 🩻 Pneumonia Detection (X-Ray)
-*Analyzes chest X-Rays to detect signs of Pneumonia.*
--   **Model**: Deep Learning CNN (VGG16/ResNet based)
--   **Inputs**: Chest X-Ray Images (JPEG/PNG)
--   **Output**: Normal vs. Pneumonia Classification logic.
+## 🔬 Scientific Methodology
 
-### 🧠 Brain Tumor Detection (MRI)
-*Detects brain tumors from MRI scans and classifies them.*
--   **Model**: Xception (Transfer Learning)
--   **Inputs**: Brain MRI Images
--   **Output**: Glioma, Meningioma, No Tumor, Pituitary classification.
+MedSynapse follows a rigorous data processing and modeling pipeline:
+- **Numerical Data**: Uses robust scaling and feature engineering to ensure ~98% accuracy in diabetes detection.
+- **Image Data**: Utilizes **Transfer Learning** (Xception) and **Data Augmentation** to identify subtle anomalies in MRI and X-Ray scans.
+- **Validation**: All models are cross-validated to ensure generalizability across different patient demographics.
 
 ---
 
@@ -112,21 +117,25 @@ Our solution combines three predictive models into a unified, user-friendly inte
 
 ---
 
-## 💻 Local Developer Setup (Optional)
+## 💻 Local Developer Setup
 
-If you wish to run the system locally for development purposes:
+If you wish to contribute or run the system locally:
 
-1. **Clone & Install**:
-   ```bash
-   git clone https://github.com/ShivamMaurya14/Disease_Prediction_System.git
-   cd Disease_Prediction_System
-   pip install -r requirements.txt
-   ```
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/ShivamMaurya14/Disease_Prediction_System.git
+cd Disease_Prediction_System
+```
 
-2. **Run App**:
-   ```bash
-   streamlit run app.py
-   ```
+### 2️⃣ Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3️⃣ Launch the Application
+```bash
+streamlit run app.py
+```
 
 ---
 
@@ -164,10 +173,12 @@ python scripts/verify_models.py
 
 ## 👥 Contributors
 
-**Team - MEDSYNAPSE**  
+**Team - MEDSYNAPSE**
 
--   **Shivam Maurya** - *AI & Robotics Engineer*
--   **[Sherya Shinde]** - *Data Scientist/ML Engineer*
+| Name | Role | Profile |
+| :--- | :--- | :--- |
+| **Shivam Maurya** | AI & Robotics Engineer | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/ShivamMaurya14) |
+| **Sherya Shinde** | Data Scientist / ML Engineer | |
 
 ---
 
