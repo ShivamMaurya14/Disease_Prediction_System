@@ -181,4 +181,4 @@ python scripts/verify_models.py
 
 ---
 
-Made with ❤️ and ☕ for healthcare innovation.
+Made with ❤️ for healthcare innovation.
