@@ -178,7 +178,6 @@ python scripts/verify_models.py
 | Name | Role | Profile |
 | :--- | :--- | :--- |
 | **Shivam Maurya** | AI & Robotics Engineer | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/ShivamMaurya14) |
-| **Sherya Shinde** | Data Scientist / ML Engineer | |
 
 ---
 
